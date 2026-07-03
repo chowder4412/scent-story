@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { PERFUME_INVENTORY } from "./src/perfumesData.js"; // In ESM/TS, node can resolve this
+import { supabase } from "./src/supabaseClient.js";
 
 const app = express();
 const PORT = 3000;
@@ -28,35 +29,16 @@ function requireAdminAuth(req: express.Request, res: express.Response, next: exp
   next();
 }
 
-// JSON Database Setup
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "perfumes.json");
-const ADMIN_CONFIG_FILE = path.join(DATA_DIR, "admin_config.json");
+// Supabase Database Helpers
+async function readAdminConfig() {
+  const { data, error } = await supabase
+    .from("admin_config")
+    .select("*")
+    .eq("id", "single_config")
+    .single();
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-if (!fs.existsSync(DATA_FILE)) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(PERFUME_INVENTORY, null, 2), "utf8");
-}
-
-if (!fs.existsSync(ADMIN_CONFIG_FILE)) {
-  const defaultCredentials = {
-    username: process.env.ADMIN_USERNAME || "admin",
-    password: process.env.ADMIN_PASSWORD || "debsstory2026",
-    securityQuestion: "",
-    securityAnswer: ""
-  };
-  fs.writeFileSync(ADMIN_CONFIG_FILE, JSON.stringify(defaultCredentials, null, 2), "utf8");
-}
-
-function readAdminConfig() {
-  try {
-    const data = fs.readFileSync(ADMIN_CONFIG_FILE, "utf8");
-    return JSON.parse(data);
-  } catch (err) {
-    console.error("Error reading admin config file:", err);
+  if (error || !data) {
+    console.warn("Unable to fetch admin config from Supabase. Using env/default values.");
     return {
       username: process.env.ADMIN_USERNAME || "admin",
       password: process.env.ADMIN_PASSWORD || "debsstory2026",
@@ -64,31 +46,46 @@ function readAdminConfig() {
       securityAnswer: ""
     };
   }
+  return data;
 }
 
-function writeAdminConfig(config: any) {
-  try {
-    fs.writeFileSync(ADMIN_CONFIG_FILE, JSON.stringify(config, null, 2), "utf8");
-  } catch (err) {
-    console.error("Error writing admin config file:", err);
+async function writeAdminConfig(config: any) {
+  const { error } = await supabase
+    .from("admin_config")
+    .upsert({
+      id: "single_config",
+      username: config.username,
+      password: config.password,
+      securityQuestion: config.securityQuestion,
+      securityAnswer: config.securityAnswer
+    });
+
+  if (error) {
+    console.error("Error writing admin config to Supabase:", error);
+    throw new Error("Failed to save configuration settings to database.");
   }
 }
 
-function readPerfumes(): any[] {
-  try {
-    const data = fs.readFileSync(DATA_FILE, "utf8");
-    return JSON.parse(data);
-  } catch (err) {
-    console.error("Error reading perfumes file:", err);
+async function readPerfumes(): Promise<any[]> {
+  const { data, error } = await supabase
+    .from("perfumes")
+    .select("*");
+
+  if (error) {
+    console.error("Error reading perfumes from Supabase:", error);
     return PERFUME_INVENTORY;
   }
+  return data || [];
 }
 
-function writePerfumes(perfumes: any[]) {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(perfumes, null, 2), "utf8");
-  } catch (err) {
-    console.error("Error writing perfumes file:", err);
+async function writePerfumes(perfumes: any[]) {
+  const { error } = await supabase
+    .from("perfumes")
+    .upsert(perfumes);
+
+  if (error) {
+    console.error("Error writing perfumes list to Supabase:", error);
+    throw new Error("Failed to save perfumes database.");
   }
 }
 
@@ -96,13 +93,13 @@ function writePerfumes(perfumes: any[]) {
 app.use("/admin", express.static(path.join(process.cwd(), "admin")));
 
 // REST API Routes for Perfume Management
-app.post("/api/admin/login", (req, res) => {
+app.post("/api/admin/login", async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
       return res.status(400).json({ error: "Username and password are required" });
     }
-    const config = readAdminConfig();
+    const config = await readAdminConfig();
     if (username === config.username && password === config.password) {
       res.json({ token: ADMIN_SESSION_TOKEN });
     } else {
@@ -114,9 +111,9 @@ app.post("/api/admin/login", (req, res) => {
 });
 
 // GET security config (filters out password and answer for safety)
-app.get("/api/admin/security", requireAdminAuth, (req, res) => {
+app.get("/api/admin/security", requireAdminAuth, async (req, res) => {
   try {
-    const config = readAdminConfig();
+    const config = await readAdminConfig();
     res.json({
       username: config.username,
       securityQuestion: config.securityQuestion,
@@ -128,7 +125,7 @@ app.get("/api/admin/security", requireAdminAuth, (req, res) => {
 });
 
 // POST update security config
-app.post("/api/admin/security/update", requireAdminAuth, (req, res) => {
+app.post("/api/admin/security/update", requireAdminAuth, async (req, res) => {
   try {
     const { currentPassword, newUsername, newPassword, securityQuestion, securityAnswer } = req.body;
     
@@ -136,7 +133,7 @@ app.post("/api/admin/security/update", requireAdminAuth, (req, res) => {
       return res.status(400).json({ error: "Current password is required to save changes" });
     }
     
-    const config = readAdminConfig();
+    const config = await readAdminConfig();
     if (currentPassword !== config.password) {
       return res.status(401).json({ error: "Incorrect current password" });
     }
@@ -146,7 +143,7 @@ app.post("/api/admin/security/update", requireAdminAuth, (req, res) => {
     if (securityQuestion !== undefined) config.securityQuestion = securityQuestion.trim();
     if (securityAnswer !== undefined) config.securityAnswer = securityAnswer.trim();
     
-    writeAdminConfig(config);
+    await writeAdminConfig(config);
     res.json({ message: "Security settings updated successfully" });
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Failed to update security settings" });
@@ -154,14 +151,14 @@ app.post("/api/admin/security/update", requireAdminAuth, (req, res) => {
 });
 
 // GET security question challenge (returns the question for a username)
-app.post("/api/admin/forgot-password/challenge", (req, res) => {
+app.post("/api/admin/forgot-password/challenge", async (req, res) => {
   try {
     const { username } = req.body;
     if (!username) {
       return res.status(400).json({ error: "Username is required" });
     }
     
-    const config = readAdminConfig();
+    const config = await readAdminConfig();
     if (username.trim() !== config.username) {
       return res.status(404).json({ error: "Admin username not found" });
     }
@@ -177,7 +174,7 @@ app.post("/api/admin/forgot-password/challenge", (req, res) => {
 });
 
 // POST reset password using security question
-app.post("/api/admin/forgot-password/reset", (req, res) => {
+app.post("/api/admin/forgot-password/reset", async (req, res) => {
   try {
     const { username, securityAnswer, newPassword } = req.body;
     
@@ -185,7 +182,7 @@ app.post("/api/admin/forgot-password/reset", (req, res) => {
       return res.status(400).json({ error: "All fields are required" });
     }
     
-    const config = readAdminConfig();
+    const config = await readAdminConfig();
     if (username.trim() !== config.username) {
       return res.status(404).json({ error: "Admin username not found" });
     }
@@ -196,7 +193,7 @@ app.post("/api/admin/forgot-password/reset", (req, res) => {
     
     if (securityAnswer.trim().toLowerCase() === config.securityAnswer.trim().toLowerCase()) {
       config.password = newPassword;
-      writeAdminConfig(config);
+      await writeAdminConfig(config);
       res.json({ message: "Password reset successful" });
     } else {
       res.status(401).json({ error: "Incorrect answer to security question" });
@@ -206,18 +203,18 @@ app.post("/api/admin/forgot-password/reset", (req, res) => {
   }
 });
 
-app.get("/api/perfumes", (req, res) => {
+app.get("/api/perfumes", async (req, res) => {
   try {
-    const perfumes = readPerfumes();
+    const perfumes = await readPerfumes();
     res.json(perfumes);
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Failed to load perfumes" });
   }
 });
 
-app.post("/api/perfumes", requireAdminAuth, (req, res) => {
+app.post("/api/perfumes", requireAdminAuth, async (req, res) => {
   try {
-    const perfumes = readPerfumes();
+    const perfumes = await readPerfumes();
     const newPerfume = req.body;
     
     // Auto-generate ID
@@ -236,7 +233,7 @@ app.post("/api/perfumes", requireAdminAuth, (req, res) => {
     }
     
     perfumes.push(newPerfume);
-    writePerfumes(perfumes);
+    await writePerfumes(perfumes);
     
     res.status(201).json(newPerfume);
   } catch (err: any) {
@@ -244,10 +241,10 @@ app.post("/api/perfumes", requireAdminAuth, (req, res) => {
   }
 });
 
-app.put("/api/perfumes/:id", requireAdminAuth, (req, res) => {
+app.put("/api/perfumes/:id", requireAdminAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const perfumes = readPerfumes();
+    const perfumes = await readPerfumes();
     const index = perfumes.findIndex(p => p.id === id);
     
     if (index === -1) {
@@ -261,7 +258,7 @@ app.put("/api/perfumes/:id", requireAdminAuth, (req, res) => {
     }
     
     perfumes[index] = updatedPerfume;
-    writePerfumes(perfumes);
+    await writePerfumes(perfumes);
     
     res.json(updatedPerfume);
   } catch (err: any) {
@@ -269,10 +266,10 @@ app.put("/api/perfumes/:id", requireAdminAuth, (req, res) => {
   }
 });
 
-app.delete("/api/perfumes/:id", requireAdminAuth, (req, res) => {
+app.delete("/api/perfumes/:id", requireAdminAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const perfumes = readPerfumes();
+    const perfumes = await readPerfumes();
     const index = perfumes.findIndex(p => p.id === id);
     
     if (index === -1) {
@@ -280,7 +277,7 @@ app.delete("/api/perfumes/:id", requireAdminAuth, (req, res) => {
     }
     
     const deleted = perfumes.splice(index, 1);
-    writePerfumes(perfumes);
+    await writePerfumes(perfumes);
     
     res.json({ message: "Perfume deleted successfully", deleted: deleted[0] });
   } catch (err: any) {
@@ -288,9 +285,9 @@ app.delete("/api/perfumes/:id", requireAdminAuth, (req, res) => {
   }
 });
 
-app.post("/api/perfumes/reset", requireAdminAuth, (req, res) => {
+app.post("/api/perfumes/reset", requireAdminAuth, async (req, res) => {
   try {
-    writePerfumes(PERFUME_INVENTORY);
+    await writePerfumes(PERFUME_INVENTORY);
     res.json({ message: "Catalog reset to factory defaults successfully", perfumes: PERFUME_INVENTORY });
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Failed to reset catalog" });
@@ -319,11 +316,12 @@ function getAiClient(): GoogleGenAI {
 }
 
 // Smart rule-based fallback when GEMINI_API_KEY is missing
-function getRuleBasedRecommendations(preferences: any) {
+async function getRuleBasedRecommendations(preferences: any) {
   const { gender, intensity, families, occasion } = preferences;
   
   // Filter by gender category
-  let matches = readPerfumes().filter(p => {
+  const perfumes = await readPerfumes();
+  let matches = perfumes.filter(p => {
     if (gender === 'Unisex') return true;
     return p.category === gender || p.category === 'Unisex';
   });
@@ -410,7 +408,7 @@ The user is seeking perfume suggestions based on their specific taste profile:
 - Personal notes / custom description: "${preferences.customText || "No additional comments"}"
 
 Here is Debs Scent Story's official stock list (in JSON format):
-${JSON.stringify(readPerfumes(), null, 2)}
+${JSON.stringify(await readPerfumes(), null, 2)}
 
 Identify the best 1 to 3 perfumes from our stock that match their taste. If we have highly relevant matches, list them. If some popular options fit their general description, suggest them.
 
@@ -462,7 +460,7 @@ Do not add any markdown block, prefix, or extra text. Output ONLY valid JSON.
     } catch (apiError: any) {
       // Fallback gracefully to rule-based recommendations if Gemini fails or is unconfigured
       console.warn("Gemini Scent Finder error (using smart fallback):", apiError.message);
-      const fallbackResult = getRuleBasedRecommendations(preferences);
+      const fallbackResult = await getRuleBasedRecommendations(preferences);
       res.json(fallbackResult);
     }
   } catch (error: any) {
@@ -477,6 +475,11 @@ app.get("/api/health", (req, res) => {
 
 // Vite Middleware integration for development
 async function setupServer() {
+  if (process.env.VERCEL === "1") {
+    console.log("Bypassing server listener on Vercel environment.");
+    return;
+  }
+
   if (process.env.NODE_ENV !== "production") {
     console.log("Starting server in development mode...");
     const vite = await createViteServer({
@@ -499,3 +502,5 @@ async function setupServer() {
 }
 
 setupServer();
+
+export default app;

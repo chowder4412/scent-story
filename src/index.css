@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-burgundy-50: #fcf4f5;
+  --color-burgundy-100: #f7e6e8;
+  --color-burgundy-200: #f0cdd2;
+  --color-burgundy-600: #ac1a35;
+  --color-burgundy-700: #901127;
+  --color-burgundy-800: #800020; /* Deep Royal Burgundy from the poster */
+  --color-burgundy-900: #620117;
+  --color-burgundy-950: #42000e;
+  
+  --color-gold-50: #faf7f2;
+  --color-gold-100: #f4edd9;
+  --color-gold-200: #ebdcae;
+  --color-gold-500: #c5a85c; /* Soft Metallic Gold */
+  --color-gold-600: #b3913c;
+  --color-gold-700: #947429;
+  --color-gold-800: #755a1d;
+  
+  --font-serif: "Cinzel", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-neutral-50 text-neutral-800 font-sans antialiased selection:bg-burgundy-200 selection:text-burgundy-950;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-wide;
+  }
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #ac1a35;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #800020;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Debs Scent Story",
+  "description": "An elegant luxury perfume boutique storefront featuring designer and niche perfumes, custom scent profiles, direct WhatsApp ordering, and an interactive AI Scent Consultant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

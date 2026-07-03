@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debs Scent Story — Admin Panel</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          },
+          colors: {
+            burgundy: {
+              50: '#fdf2f4',
+              100: '#fbe4e8',
+              200: '#f7ccd4',
+              300: '#f0a3b2',
+              400: '#e56f87',
+              500: '#d54363',
+              600: '#c1264c',
+              700: '#a21b3d',
+              800: '#861935',
+              900: '#711830',
+              950: '#420816',
+            },
+            gold: {
+              50: '#fbf9eb',
+              100: '#f5f0cc',
+              200: '#ebe19b',
+              300: '#dcc960',
+              400: '#cbad31',
+              500: '#af9123',
+              600: '#8e711b',
+              700: '#6d5317',
+              800: '#533f16',
+              900: '#453316',
+              950: '#271b0a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #110306;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #711830;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #af9123;
+    }
+    
+    /* Animation classes */
+    .fade-in {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    .slide-over {
+      animation: slideOver 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideOver {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100 min-h-screen font-sans antialiased selection:bg-burgundy-900 selection:text-gold-200">
+
+  <!-- LOGIN VIEW -->
+  <div id="login-view" class="min-h-screen flex items-center justify-center p-4 bg-neutral-950 relative overflow-hidden">
+    <!-- background glow -->
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-burgundy-850/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <div class="relative w-full max-w-md bg-neutral-900 border border-neutral-850 p-8 rounded-3xl shadow-2xl space-y-6 flex flex-col">
+      <div class="text-center space-y-3">
+        <div class="mx-auto bg-gradient-to-br from-gold-500 to-gold-600 text-burgundy-950 p-3.5 rounded-2xl w-14 h-14 flex items-center justify-center shadow-md">
+          <i data-lucide="lock" class="w-6 h-6 stroke-[2]"></i>
+        </div>
+        <div class="space-y-1">
+          <h2 class="font-serif text-xl sm:text-2xl font-bold tracking-wide text-gold-200 uppercase">
+            DEBS SCENT STORY
+          </h2>
+          <p class="text-3xs font-mono font-bold text-neutral-500 tracking-widest uppercase">
+            Access Authorized Plug Panel
+          </p>
+        </div>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4 text-xs font-sans" autocomplete="off">
+        <!-- Dummy inputs to capture autofill -->
+        <input type="text" name="username_fake" style="display:none" autocomplete="off" />
+        <input type="password" name="password_fake" style="display:none" autocomplete="off" />
+
+        <!-- Error alert -->
+        <div id="login-error" class="hidden text-rose-500 bg-rose-950/20 border border-rose-900/40 p-3.5 rounded-xl text-3xs font-semibold flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+          <span id="login-error-text">Invalid username or password.</span>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="login-username" class="block font-semibold text-neutral-400">Username</label>
+          <div class="relative">
+            <i data-lucide="user" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 w-4 h-4"></i>
+            <input
+              id="login-username"
+              type="text"
+              required
+              autocomplete="off"
+              readonly
+              onfocus="this.removeAttribute('readonly');"
+              placeholder="Enter username"
+              class="w-full pl-11 pr-4 py-3 bg-neutral-950 border border-neutral-800 focus:outline-none focus:border-burgundy-850 rounded-xl text-neutral-100 placeholder:text-neutral-600 font-sans"
+            />
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="login-password" class="block font-semibold text-neutral-400">Password</label>
+          <div class="relative">
+            <i data-lucide="key-round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 w-4 h-4"></i>
+            <input
+              id="login-password"
+              type="password"
+              required
+              autocomplete="new-password"
+              readonly
+              onfocus="this.removeAttribute('readonly');"
+              placeholder="Enter password"
+              class="w-full pl-11 pr-11 py-3 bg-neutral-950 border border-neutral-800 focus:outline-none focus:border-burgundy-850 rounded-xl text-neutral-100 placeholder:text-neutral-600 font-sans"
+            />
+            <button
+              type="button"
+              onclick="toggleLoginPassword()"
+              class="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 p-0.5 rounded-lg transition"
+              title="Show/Hide Password"
+            >
+              <i id="password-toggle-icon" data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-2 flex items-center justify-between gap-4">
+          <button type="button" onclick="showForgotPasswordFlow()" class="text-3xs font-semibold text-neutral-500 hover:text-gold-400 transition cursor-pointer">
+            Forgot Password?
+          </button>
+          
+          <button
+            type="submit"
+            class="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-burgundy-950 font-bold py-3 px-6 rounded-xl shadow-lg w-full transition duration-300 transform active:scale-98 hover:scale-[1.01] cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Authenticate</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </form>
+
+      <!-- Forgot Password Form -->
+      <form id="forgot-password-form" onsubmit="handleForgotPasswordSubmit(event)" class="hidden space-y-4 text-xs font-sans" autocomplete="off">
+        <!-- Error/Info alert -->
+        <div id="forgot-error" class="hidden text-rose-500 bg-rose-950/20 border border-rose-900/40 p-3.5 rounded-xl text-3xs font-semibold flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+          <span id="forgot-error-text">Recovery error</span>
+        </div>
+
+        <!-- Step 1: Username -->
+        <div id="forgot-step-1" class="space-y-4">
+          <div class="space-y-1.5">
+            <label for="forgot-username" class="block font-semibold text-neutral-400">Admin Username</label>
+            <div class="relative">
+              <i data-lucide="user" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 w-4 h-4"></i>
+              <input
+                id="forgot-username"
+                type="text"
+                placeholder="Enter username"
+                class="w-full pl-11 pr-4 py-3 bg-neutral-950 border border-neutral-800 focus:outline-none focus:border-burgundy-850 rounded-xl text-neutral-100 placeholder:text-neutral-600 font-sans"
+              />
+            </div>
+          </div>
+          
+          <button
+            type="button"
+            onclick="handleForgotPasswordChallenge()"
+            class="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-burgundy-950 font-bold py-3 px-6 rounded-xl shadow-lg w-full transition duration-300 transform active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Verify Username</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Step 2: Answer Challenge and Reset (hidden until challenge succeeds) -->
+        <div id="forgot-step-2" class="hidden space-y-4">
+          <div class="bg-neutral-950/60 border border-neutral-850 p-4 rounded-2xl">
+            <span class="text-3xs text-neutral-500 block font-mono font-bold uppercase tracking-wide mb-1">Security Question:</span>
+            <p id="forgot-question-text" class="text-neutral-200 text-xs font-semibold leading-relaxed"></p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="forgot-answer" class="block font-semibold text-neutral-400">Security Answer</label>
+            <input
+              id="forgot-answer"
+              type="text"
+              placeholder="Enter answer"
+              class="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 focus:outline-none focus:border-burgundy-850 rounded-xl text-neutral-100 placeholder:text-neutral-600 font-sans"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="forgot-new-password" class="block font-semibold text-neutral-400">Choose New Password</label>
+            <input
+              id="forgot-new-password"
+              type="password"
+              placeholder="Enter new password"
+              class="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 focus:outline-none focus:border-burgundy-850 rounded-xl text-neutral-100 placeholder:text-neutral-600 font-sans"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-burgundy-950 font-bold py-3 px-6 rounded-xl shadow-lg w-full transition duration-300 transform active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Reset Password</span>
+            <i data-lucide="key" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="text-center pt-2">
+          <button type="button" onclick="showLoginFlow()" class="text-3xs font-bold text-neutral-500 hover:text-gold-400 transition cursor-pointer uppercase tracking-wider">
+            Back to Authentication
+          </button>
+        </div>
+      </form>
+
+      <!-- Back to storefront link -->
+      <a href="/" class="text-center text-4xs font-mono font-bold text-neutral-500 hover:text-gold-400 transition uppercase tracking-wider">
+        ← Back to Customer Store
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Wrapper -->
+  <div id="dashboard-view" class="hidden min-h-screen flex flex-col justify-between">
+    
+    <!-- Navigation Top Header -->
+    <header class="bg-burgundy-950 border-b border-burgundy-900/60 sticky top-0 z-40 backdrop-blur-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="bg-gradient-to-br from-gold-500 to-gold-600 p-2.5 rounded-xl text-burgundy-950 shadow-md">
+            <i data-lucide="store" class="w-6 h-6 stroke-[2]"></i>
+          </div>
+          <div>
+            <h1 class="font-serif text-xl sm:text-2xl font-bold tracking-wider text-gold-200 uppercase">
+              Debs Scent Story
+            </h1>
+            <span class="text-3xs font-mono font-bold tracking-widest text-burgundy-400 uppercase">
+              Fragrance Plug Admin Panel
+            </span>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <a href="/" class="flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>View Customer Store</span>
+          </a>
+          
+          <button onclick="handleLogout()" class="flex items-center gap-2 bg-burgundy-950/40 hover:bg-burgundy-900 border border-burgundy-900 text-burgundy-300 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition shadow-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Dashboard -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      
+      <!-- 1. Quick Info Stats Cards -->
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        
+        <!-- Stat 1: Total Items -->
+        <div class="bg-gradient-to-br from-neutral-900 to-neutral-950 border border-neutral-900 rounded-2xl p-5 shadow-md flex items-center justify-between gap-4 hover:border-burgundy-900/40 transition duration-350">
+          <div class="space-y-1">
+            <span class="text-4xs font-mono font-bold text-neutral-500 uppercase tracking-widest block">Total Inventory</span>
+            <span id="stat-total-count" class="text-2xl sm:text-3xl font-serif font-bold text-white block">0</span>
+            <span class="text-[10px] text-neutral-400">active scents online</span>
+          </div>
+          <div class="p-3 bg-burgundy-950 border border-burgundy-900/30 text-burgundy-400 rounded-xl">
+            <i data-lucide="package" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Stat 2: Perfume Oils -->
+        <div class="bg-gradient-to-br from-neutral-900 to-neutral-950 border border-neutral-900 rounded-2xl p-5 shadow-md flex items-center justify-between gap-4 hover:border-burgundy-900/40 transition duration-350">
+          <div class="space-y-1">
+            <span class="text-4xs font-mono font-bold text-neutral-500 uppercase tracking-widest block">Perfume Oils</span>
+            <span id="stat-oils-count" class="text-2xl sm:text-3xl font-serif font-bold text-white block">0</span>
+            <span class="text-[10px] text-neutral-400">highly concentrated</span>
+          </div>
+          <div class="p-3 bg-gold-950 border border-gold-900/30 text-gold-400 rounded-xl">
+            <i data-lucide="droplet" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Stat 3: Arabian Ouds -->
+        <div class="bg-gradient-to-br from-neutral-900 to-neutral-950 border border-neutral-900 rounded-2xl p-5 shadow-md flex items-center justify-between gap-4 hover:border-burgundy-900/40 transition duration-350">
+          <div class="space-y-1">
+            <span class="text-4xs font-mono font-bold text-neutral-500 uppercase tracking-widest block">Arabian Ouds</span>
+            <span id="stat-ouds-count" class="text-2xl sm:text-3xl font-serif font-bold text-white block">0</span>
+            <span class="text-[10px] text-neutral-400">imported Dubai specials</span>
+          </div>
+          <div class="p-3 bg-burgundy-950 border border-burgundy-900/30 text-burgundy-400 rounded-xl">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Stat 4: Catalog Valuation -->
+        <div class="bg-gradient-to-br from-neutral-900 to-neutral-950 border border-neutral-900 rounded-2xl p-5 shadow-md flex items-center justify-between gap-4 hover:border-burgundy-900/40 transition duration-350">
+          <div class="space-y-1">
+            <span class="text-4xs font-mono font-bold text-neutral-500 uppercase tracking-widest block">Avg Product Price</span>
+            <span id="stat-avg-price" class="text-xl sm:text-2xl font-serif font-bold text-gold-200 block">₦0</span>
+            <span class="text-[10px] text-neutral-400">premium pricing tier</span>
+          </div>
+          <div class="p-3 bg-neutral-800 text-neutral-400 rounded-xl">
+            <i data-lucide="wallet" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 2. Main Catalog Table Section -->
+      <section class="bg-neutral-900 border border-neutral-900 rounded-3xl shadow-lg overflow-hidden flex flex-col">
+        
+        <!-- Action Controls Bar -->
+        <div class="p-6 border-b border-neutral-800 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-neutral-900/50">
+          
+          <!-- Search Input -->
+          <div class="relative flex-1 max-w-md w-full">
+            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 w-4 h-4"></i>
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Search by name, brand, or notes (e.g. Saffron)..."
+              class="w-full pl-11 pr-4 py-2.5 bg-neutral-950 hover:bg-neutral-950/70 border border-neutral-800 focus:outline-none focus:ring-2 focus:ring-burgundy-800/40 focus:border-burgundy-800 rounded-xl text-xs sm:text-sm transition font-sans text-neutral-100 placeholder:text-neutral-500"
+            />
+          </div>
+
+          <!-- Filter Dropdowns & Add Button -->
+          <div class="flex flex-wrap items-center gap-3">
+            
+            <!-- Category Filter -->
+            <select
+              id="filter-category"
+              class="bg-neutral-950 border border-neutral-800 hover:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-burgundy-800/40 focus:border-burgundy-800 px-3 py-2.5 rounded-xl text-xs font-semibold text-neutral-300 transition"
+            >
+              <option value="all">All Genders</option>
+              <option value="Men">Men</option>
+              <option value="Women">Women</option>
+              <option value="Unisex">Unisex</option>
+            </select>
+
+            <!-- Type Filter -->
+            <select
+              id="filter-type"
+              class="bg-neutral-950 border border-neutral-800 hover:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-burgundy-800/40 focus:border-burgundy-800 px-3 py-2.5 rounded-xl text-xs font-semibold text-neutral-300 transition"
+            >
+              <option value="all">All Types</option>
+              <option value="Eau de Parfum">Eau de Parfum</option>
+              <option value="Eau de Toilette">Eau de Toilette</option>
+              <option value="Perfume Oil">Perfume Oil</option>
+              <option value="Arabian Oud">Arabian Oud</option>
+            </select>
+
+            <!-- Add New Scent Button -->
+            <button
+              onclick="openAddForm()"
+              class="bg-burgundy-800 hover:bg-burgundy-700 hover:scale-[1.02] active:scale-[0.98] text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg transition duration-200 text-xs sm:text-sm flex items-center gap-2 cursor-pointer ml-auto md:ml-0"
+            >
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add New Scent</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Inventory Table Container -->
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-neutral-950 text-neutral-400 font-mono uppercase tracking-wider text-2xs border-b border-neutral-800 font-semibold">
+                <th class="p-4 pl-6 w-20">Preview</th>
+                <th class="p-4">Scent / Brand</th>
+                <th class="p-4 w-28">Category / Type</th>
+                <th class="p-4 w-24">Size</th>
+                <th class="p-4 w-32">Price</th>
+                <th class="p-4 hidden xl:table-cell">Scent Notes</th>
+                <th class="p-4 text-center w-28 pr-6">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-tbody" class="divide-y divide-neutral-800/60 font-sans">
+              <!-- Loaded dynamically -->
+              <tr>
+                <td colspan="7" class="p-16 text-center text-neutral-500">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <div class="w-8 h-8 border-2 border-neutral-700 border-t-gold-500 rounded-full animate-spin"></div>
+                    <span>Fetching catalog inventory...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+      </section>
+
+      <!-- 3. Admin Security Configuration Settings -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: Security config info -->
+        <div class="lg:col-span-1 bg-neutral-900 border border-neutral-900 p-6 rounded-3xl shadow-md space-y-4 flex flex-col justify-between">
+          <div class="space-y-2">
+            <div class="p-3 bg-gold-950 border border-gold-900/30 text-gold-400 rounded-xl inline-block">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <h4 class="font-serif font-bold text-white text-base">Security Settings</h4>
+            <p class="text-neutral-400 text-xs leading-relaxed">
+              Update your administrative login credentials and configure a security recovery question. This question will be used to recover access if you forget your password.
+            </p>
+          </div>
+          <div class="text-3xs text-neutral-500 font-mono">
+            Always keep your security question answer memorable and confidential.
+          </div>
+        </div>
+
+        <!-- Right: Security settings form -->
+        <div class="lg:col-span-2 bg-neutral-900 border border-neutral-900 p-6 rounded-3xl shadow-md">
+          <form id="security-settings-form" onsubmit="handleSecuritySettingsSubmit(event)" class="space-y-4 text-xs font-sans">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label for="settings-username" class="block font-semibold text-neutral-400">Change Admin Username</label>
+                <input
+                  type="text"
+                  id="settings-username"
+                  placeholder="Enter new username"
+                  class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-850 text-neutral-100 font-sans"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label for="settings-password" class="block font-semibold text-neutral-400">Change Admin Password</label>
+                <input
+                  type="password"
+                  id="settings-password"
+                  placeholder="Enter new password (optional)"
+                  class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-850 text-neutral-100 font-sans"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label for="settings-question" class="block font-semibold text-neutral-400">Security Question</label>
+                <select
+                  id="settings-question"
+                  class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-850 text-neutral-200 font-semibold"
+                >
+                  <option value="">-- Choose a Security Question --</option>
+                  <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                  <option value="What city were you born in?">What city were you born in?</option>
+                  <option value="What was the name of your first school?">What was the name of your first school?</option>
+                  <option value="What is your favorite perfume ingredient?">What is your favorite perfume ingredient?</option>
+                  <option value="custom">-- Write a Custom Question --</option>
+                </select>
+                <input
+                  type="text"
+                  id="settings-question-custom"
+                  placeholder="Type your custom security question"
+                  class="w-full mt-2 px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-850 text-neutral-100 font-sans hidden"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label for="settings-answer" class="block font-semibold text-neutral-400">Security Question Answer</label>
+                <input
+                  type="text"
+                  id="settings-answer"
+                  placeholder="Enter answer (confidential)"
+                  class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-850 text-neutral-100 font-sans"
+                />
+              </div>
+            </div>
+
+            <!-- Validation Password -->
+            <div class="pt-2 border-t border-neutral-800 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-4">
+              <div class="space-y-1.5 flex-1 max-w-xs w-full">
+                <label for="settings-current-password" class="block font-semibold text-neutral-400">Confirm Current Password*</label>
+                <input
+                  type="password"
+                  id="settings-current-password"
+                  required
+                  placeholder="Enter current password to save"
+                  class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-850 rounded-xl focus:outline-none focus:border-burgundy-850 text-neutral-100 font-sans"
+                />
+              </div>
+              <button
+                type="submit"
+                class="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-burgundy-950 font-bold py-3 px-6 rounded-xl shadow-md transition duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              >
+                Save Security Settings
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+      </section>
+
+      <!-- 3. Catalog Utility Tools -->
+      <section class="flex justify-between items-center bg-neutral-900 border border-neutral-900 p-6 rounded-3xl shadow-md">
+        <div class="space-y-1">
+          <h4 class="font-serif font-bold text-neutral-200 text-sm">System Tools</h4>
+          <p class="text-neutral-500 text-3xs">Need to restore the initial stock? Use the system reset utility below.</p>
+        </div>
+        
+        <button
+          onclick="confirmResetCatalog()"
+          class="flex items-center gap-2 border border-burgundy-900/60 bg-burgundy-950/20 hover:bg-burgundy-900/30 text-burgundy-300 font-semibold px-4 py-2.5 rounded-xl transition text-xs cursor-pointer hover:border-burgundy-900"
+        >
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Reset Catalog to Defaults</span>
+        </button>
+      </section>
+
+    </main>
+
+    <!-- Admin Footer -->
+    <footer class="border-t border-neutral-900 bg-neutral-950 py-6 text-center text-3xs text-neutral-600">
+      <p>© 2026 Debs Scent Story. Internal Admin Panel. Smell Unforgettable!</p>
+    </footer>
+
+  </div>
+
+  <!-- ==================== DIALOG MODALS & SLIDE-OVERS ==================== -->
+
+  <!-- A. SLIDE-OVER FORM DRAWER (Add / Edit) -->
+  <div id="form-drawer" class="fixed inset-0 z-50 overflow-hidden hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 overflow-hidden">
+      <!-- Backdrop -->
+      <div onclick="closeFormDrawer()" class="absolute inset-0 bg-neutral-950/80 backdrop-blur-xs transition-opacity fade-in"></div>
+
+      <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+        <!-- Slide-over panel -->
+        <div class="pointer-events-auto w-screen max-w-lg slide-over">
+          <div class="flex h-full flex-col overflow-y-scroll bg-neutral-900 border-l border-neutral-800 shadow-2xl">
+            
+            <!-- Drawer Header -->
+            <div class="bg-burgundy-950 px-6 py-6 border-b border-burgundy-900 flex items-center justify-between">
+              <div>
+                <h2 id="drawer-title" class="text-lg font-serif font-bold text-gold-200 uppercase tracking-wide">
+                  Add New Scent
+                </h2>
+                <p id="drawer-subtitle" class="text-3xs text-neutral-400 font-mono uppercase tracking-widest mt-0.5">
+                  Insert item into live stock database
+                </p>
+              </div>
+              <button onclick="closeFormDrawer()" class="rounded-xl border border-neutral-800 p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- Drawer Form -->
+            <form id="scent-form" onsubmit="handleFormSubmit(event)" class="flex-1 flex flex-col justify-between">
+              <input type="hidden" id="form-perfume-id" value="">
+              
+              <!-- Form Scrollable Fields -->
+              <div class="p-6 space-y-6 text-xs">
+                
+                <!-- 1. Name & Brand Grid -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label for="form-name" class="block font-semibold text-neutral-400">Scent Name*</label>
+                    <input
+                      type="text"
+                      id="form-name"
+                      required
+                      placeholder="e.g. Khamrah"
+                      class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans"
+                    />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label for="form-brand" class="block font-semibold text-neutral-400">Brand / Maker*</label>
+                    <input
+                      type="text"
+                      id="form-brand"
+                      required
+                      placeholder="e.g. Lattafa"
+                      class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans"
+                    />
+                  </div>
+                </div>
+
+                <!-- 2. Category & Type Grid -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label for="form-category" class="block font-semibold text-neutral-400">Category (Gender)*</label>
+                    <select
+                      id="form-category"
+                      required
+                      class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-200 font-semibold"
+                    >
+                      <option value="Unisex">Unisex</option>
+                      <option value="Men">Men</option>
+                      <option value="Women">Women</option>
+                    </select>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label for="form-type" class="block font-semibold text-neutral-400">Fragrance Formulation*</label>
+                    <select
+                      id="form-type"
+                      required
+                      class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-200 font-semibold"
+                    >
+                      <option value="Eau de Parfum">Eau de Parfum</option>
+                      <option value="Eau de Toilette">Eau de Toilette</option>
+                      <option value="Perfume Oil">Perfume Oil</option>
+                      <option value="Arabian Oud">Arabian Oud</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- 3. Size & Price Grid -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label for="form-size" class="block font-semibold text-neutral-400">Volume / Size*</label>
+                    <input
+                      type="text"
+                      id="form-size"
+                      required
+                      placeholder="e.g. 100ml or 10ml Roller"
+                      class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans"
+                    />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label for="form-price" class="block font-semibold text-neutral-400">Price (₦)*</label>
+                    <input
+                      type="number"
+                      id="form-price"
+                      required
+                      min="0"
+                      placeholder="e.g. 28000"
+                      class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans"
+                    />
+                  </div>
+                </div>
+
+                <!-- 4. Scent Notes Section -->
+                <div class="border border-neutral-800/80 bg-neutral-950/20 p-4 rounded-2xl space-y-4">
+                  <span class="block text-3xs font-mono font-bold text-gold-400 uppercase tracking-wider border-b border-neutral-800 pb-1">Fragrance Olfactory Pyramid (Comma Separated)</span>
+                  
+                  <div class="space-y-1.5">
+                    <label for="form-notes-top" class="block font-semibold text-neutral-400">Top Notes* <span class="text-4xs text-neutral-500">(initial burst)</span></label>
+                    <input
+                      type="text"
+                      id="form-notes-top"
+                      required
+                      placeholder="Cinnamon, Nutmeg, Bergamot"
+                      class="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans"
+                    />
+                  </div>
+                  
+                  <div class="space-y-1.5">
+                    <label for="form-notes-middle" class="block font-semibold text-neutral-400">Middle (Heart) Notes <span class="text-4xs text-neutral-500">(character)</span></label>
+                    <input
+                      type="text"
+                      id="form-notes-middle"
+                      placeholder="Dates, Praline, Tuberose"
+                      class="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans"
+                    />
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <label for="form-notes-base" class="block font-semibold text-neutral-400">Base Notes* <span class="text-4xs text-neutral-500">(longevity foundation)</span></label>
+                    <input
+                      type="text"
+                      id="form-notes-base"
+                      required
+                      placeholder="Vanilla, Amberwood, Myrrh"
+                      class="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans"
+                    />
+                  </div>
+                </div>
+
+                <!-- 5. Description Textarea -->
+                <div class="space-y-1.5">
+                  <label for="form-description" class="block font-semibold text-neutral-400">Product Description*</label>
+                  <textarea
+                    id="form-description"
+                    required
+                    rows="3"
+                    placeholder="Provide a luxury review detailing notes, longevity, projection, and general feedback..."
+                    class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans leading-relaxed resize-none"
+                  ></textarea>
+                </div>
+
+                <!-- 6. Scent Vibes -->
+                <div class="space-y-1.5">
+                  <label for="form-vibes" class="block font-semibold text-neutral-400">Scent Vibes <span class="text-4xs text-neutral-500">(tags, comma-separated)</span></label>
+                  <input
+                    type="text"
+                    id="form-vibes"
+                    placeholder="Sweet, Warm, Sensual, Gourmand, Oud"
+                    class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans"
+                  />
+                </div>
+
+                <!-- 7. Image URL & Preview -->
+                <div class="space-y-3">
+                  <div class="space-y-1.5">
+                    <label for="form-image" class="block font-semibold text-neutral-400">Scent Image URL*</label>
+                    <input
+                      type="url"
+                      id="form-image"
+                      required
+                      oninput="updateFormImagePreview(this.value)"
+                      placeholder="https://images.unsplash.com/..."
+                      class="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl focus:outline-none focus:border-burgundy-800 text-neutral-100 font-sans"
+                    />
+                  </div>
+                  <!-- Preview -->
+                  <div class="flex items-center gap-4 bg-neutral-950/40 border border-neutral-850 p-3 rounded-2xl">
+                    <img id="form-image-preview" src="https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=150" alt="Preview Scent" class="w-14 h-14 object-cover rounded-xl bg-neutral-850">
+                    <div class="text-[10px] text-neutral-500 leading-normal">
+                      <span class="font-bold text-neutral-400 block mb-0.5">Catalog Card Preview</span>
+                      Please input a valid web image URL (Unsplash recommended).
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Drawer Submit Panel -->
+              <div class="border-t border-neutral-800 px-6 py-6 bg-neutral-950/30 flex items-center justify-end gap-3 shrink-0">
+                <button type="button" onclick="closeFormDrawer()" class="px-5 py-3 border border-neutral-800 hover:bg-neutral-800/50 text-neutral-300 hover:text-white rounded-xl font-semibold transition cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" class="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-burgundy-950 px-6 py-3 rounded-xl font-bold transition shadow-md cursor-pointer hover:scale-[1.01]">
+                  Save Scent Catalog
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B. DELETE CONFIRMATION MODAL -->
+  <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div onclick="closeDeleteModal()" class="absolute inset-0 bg-neutral-950/80 backdrop-blur-xs transition-opacity fade-in"></div>
+    
+    <!-- Dialog Card -->
+    <div class="relative bg-neutral-900 border border-neutral-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-6 flex flex-col text-center">
+      <div class="mx-auto p-4 bg-burgundy-950 text-burgundy-400 border border-burgundy-900/40 rounded-full w-14 h-14 flex items-center justify-center">
+        <i data-lucide="trash-2" class="w-6 h-6"></i>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="font-serif text-lg font-bold text-white">Delete Scent?</h3>
+        <p class="text-neutral-400 text-xs leading-relaxed">
+          Are you sure you want to remove this perfume from the shop? This will immediately remove it for all visiting customers.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3 w-full">
+        <button onclick="closeDeleteModal()" class="flex-1 py-3 border border-neutral-800 hover:bg-neutral-850 text-neutral-300 rounded-xl font-semibold transition cursor-pointer text-xs">
+          Keep It
+        </button>
+        <button onclick="executeDelete()" class="flex-1 py-3 bg-burgundy-800 hover:bg-burgundy-700 text-white rounded-xl font-semibold transition cursor-pointer text-xs">
+          Remove Scent
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- C. SYSTEM RESET CONFIRMATION MODAL -->
+  <div id="reset-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div onclick="closeResetModal()" class="absolute inset-0 bg-neutral-950/80 backdrop-blur-xs transition-opacity fade-in"></div>
+    
+    <!-- Dialog Card -->
+    <div class="relative bg-neutral-900 border border-neutral-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-6 flex flex-col text-center">
+      <div class="mx-auto p-4 bg-gold-950 text-gold-400 border border-gold-900/40 rounded-full w-14 h-14 flex items-center justify-center">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="font-serif text-lg font-bold text-white">Reset Database?</h3>
+        <p class="text-neutral-400 text-xs leading-relaxed font-sans">
+          This will override all custom modifications and restore the original 12 perfumes (Khamrah, Baccarat, Chanel, Libre, etc.) to your storefront.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3 w-full">
+        <button onclick="closeResetModal()" class="flex-1 py-3 border border-neutral-800 hover:bg-neutral-850 text-neutral-300 rounded-xl font-semibold transition cursor-pointer text-xs">
+          Keep Current
+        </button>
+        <button onclick="executeResetCatalog()" class="flex-1 py-3 bg-gold-600 hover:bg-gold-500 text-burgundy-950 rounded-xl font-bold transition cursor-pointer text-xs">
+          Reset Database
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- D. FLOAT TOAST NOTIFICATIONS -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-xs w-full pointer-events-none"></div>
+
+  <!-- ==================== CONTROLLER JAVASCRIPT ==================== -->
+  <script>
+    // Application States
+    let allPerfumes = [];
+    let activeDeletingId = null;
+
+    // --- Authentication Helpers ---
+    function getAuthHeaders(extraHeaders = {}) {
+      const token = sessionStorage.getItem("debs_admin_token");
+      return {
+        "Authorization": `Bearer ${token || ""}`,
+        ...extraHeaders
+      };
+    }
+
+    async function handleApiResponse(response) {
+      if (response.status === 401) {
+        sessionStorage.removeItem("debs_admin_token");
+        checkAuth();
+        throw new Error("Session expired. Please log in again.");
+      }
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Server error occurred.");
+      }
+      return response.json();
+    }
+
+    function checkAuth() {
+      const token = sessionStorage.getItem("debs_admin_token");
+      const loginView = document.getElementById("login-view");
+      const dashboardView = document.getElementById("dashboard-view");
+
+      if (token) {
+        loginView.classList.add("hidden");
+        dashboardView.classList.remove("hidden");
+        fetchPerfumes();
+        fetchSecuritySettings();
+      } else {
+        loginView.classList.remove("hidden");
+        dashboardView.classList.add("hidden");
+      }
+      lucide.createIcons();
+    }
+
+    async function fetchSecuritySettings() {
+      try {
+        const response = await fetch("/api/admin/security", {
+          headers: getAuthHeaders()
+        });
+        const data = await handleApiResponse(response);
+        document.getElementById("settings-username").value = data.username || "";
+        
+        const qSelect = document.getElementById("settings-question");
+        const qCustom = document.getElementById("settings-question-custom");
+        
+        const standardOptions = Array.from(qSelect.options).map(opt => opt.value);
+        if (data.securityQuestion) {
+          if (standardOptions.includes(data.securityQuestion)) {
+            qSelect.value = data.securityQuestion;
+            qCustom.classList.add("hidden");
+            qCustom.removeAttribute("required");
+            qCustom.value = "";
+          } else {
+            qSelect.value = "custom";
+            qCustom.classList.remove("hidden");
+            qCustom.setAttribute("required", "required");
+            qCustom.value = data.securityQuestion;
+          }
+        } else {
+          qSelect.value = "";
+          qCustom.classList.add("hidden");
+          qCustom.value = "";
+        }
+        
+        document.getElementById("settings-password").value = "";
+        document.getElementById("settings-answer").value = "";
+        document.getElementById("settings-current-password").value = "";
+      } catch (err) {
+        showToast(err.message || "Failed to load security settings", "error");
+      }
+    }
+
+    async function handleSecuritySettingsSubmit(event) {
+      event.preventDefault();
+      
+      const newUsername = document.getElementById("settings-username").value.trim();
+      const newPassword = document.getElementById("settings-password").value;
+      const qSelect = document.getElementById("settings-question").value;
+      const qCustom = document.getElementById("settings-question-custom").value.trim();
+      const securityQuestion = qSelect === "custom" ? qCustom : qSelect;
+      const securityAnswer = document.getElementById("settings-answer").value.trim();
+      const currentPassword = document.getElementById("settings-current-password").value;
+
+      const payload = { currentPassword };
+      if (newUsername) payload.newUsername = newUsername;
+      if (newPassword) payload.newPassword = newPassword;
+      if (securityQuestion !== undefined) payload.securityQuestion = securityQuestion;
+      if (securityAnswer) payload.securityAnswer = securityAnswer;
+
+      try {
+        const response = await fetch("/api/admin/security/update", {
+          method: "POST",
+          headers: getAuthHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify(payload)
+        });
+
+        await handleApiResponse(response);
+        showToast("Security settings updated successfully!");
+        fetchSecuritySettings();
+      } catch (err) {
+        showToast(err.message || "Failed to save security settings", "error");
+      }
+    }
+
+    function showForgotPasswordFlow() {
+      document.getElementById("login-form").classList.add("hidden");
+      document.getElementById("forgot-password-form").classList.remove("hidden");
+      document.getElementById("forgot-step-1").classList.remove("hidden");
+      document.getElementById("forgot-step-2").classList.add("hidden");
+      document.getElementById("forgot-error").classList.add("hidden");
+      
+      document.getElementById("forgot-username").value = "";
+      document.getElementById("forgot-answer").value = "";
+      document.getElementById("forgot-new-password").value = "";
+      lucide.createIcons();
+    }
+
+    function showLoginFlow() {
+      document.getElementById("login-form").classList.remove("hidden");
+      document.getElementById("forgot-password-form").classList.add("hidden");
+      document.getElementById("login-error").classList.add("hidden");
+      lucide.createIcons();
+    }
+
+    async function handleForgotPasswordChallenge() {
+      const usernameInput = document.getElementById("forgot-username");
+      const errorDiv = document.getElementById("forgot-error");
+      const errorText = document.getElementById("forgot-error-text");
+      
+      errorDiv.classList.add("hidden");
+      
+      if (!usernameInput.value.trim()) {
+        errorText.textContent = "Please enter your username.";
+        errorDiv.classList.remove("hidden");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/admin/forgot-password/challenge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: usernameInput.value.trim() })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || "Failed to initiate recovery challenge.");
+        }
+
+        const data = await response.json();
+        document.getElementById("forgot-question-text").textContent = data.securityQuestion;
+        
+        document.getElementById("forgot-step-1").classList.add("hidden");
+        document.getElementById("forgot-step-2").classList.remove("hidden");
+        lucide.createIcons();
+      } catch (err) {
+        errorText.textContent = err.message;
+        errorDiv.classList.remove("hidden");
+        lucide.createIcons();
+      }
+    }
+
+    async function handleForgotPasswordSubmit(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById("forgot-username").value.trim();
+      const securityAnswer = document.getElementById("forgot-answer").value.trim();
+      const newPassword = document.getElementById("forgot-new-password").value;
+      const errorDiv = document.getElementById("forgot-error");
+      const errorText = document.getElementById("forgot-error-text");
+
+      errorDiv.classList.add("hidden");
+
+      try {
+        const response = await fetch("/api/admin/forgot-password/reset", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, securityAnswer, newPassword })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || "Failed to reset password.");
+        }
+
+        showToast("Password reset successful! Please log in with your new credentials.");
+        showLoginFlow();
+      } catch (err) {
+        errorText.textContent = err.message;
+        errorDiv.classList.remove("hidden");
+        lucide.createIcons();
+      }
+    }
+
+    function toggleLoginPassword() {
+      const passwordInput = document.getElementById("login-password");
+      const toggleIcon = document.getElementById("password-toggle-icon");
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        toggleIcon.setAttribute("data-lucide", "eye-off");
+      } else {
+        passwordInput.type = "password";
+        toggleIcon.setAttribute("data-lucide", "eye");
+      }
+      lucide.createIcons();
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const usernameInput = document.getElementById("login-username");
+      const passwordInput = document.getElementById("login-password");
+      const errorDiv = document.getElementById("login-error");
+      const errorText = document.getElementById("login-error-text");
+
+      errorDiv.classList.add("hidden");
+
+      try {
+        const response = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: usernameInput.value,
+            password: passwordInput.value
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || "Authentication failed.");
+        }
+
+        const data = await response.json();
+        sessionStorage.setItem("debs_admin_token", data.token);
+        
+        // Clear login inputs
+        usernameInput.value = "";
+        passwordInput.value = "";
+        
+        checkAuth();
+        showToast("Welcome back! Authentication successful.");
+      } catch (err) {
+        errorText.textContent = err.message || "Invalid username or password.";
+        errorDiv.classList.remove("hidden");
+        lucide.createIcons();
+      }
+    }
+
+    function handleLogout() {
+      sessionStorage.removeItem("debs_admin_token");
+      checkAuth();
+      showToast("Logged out successfully.");
+    }
+    // ------------------------------
+
+    // Initialize Page
+    document.addEventListener("DOMContentLoaded", () => {
+      checkAuth();
+      
+      // Hook search inputs and category filters
+      document.getElementById("search-input").addEventListener("input", renderPerfumes);
+      document.getElementById("filter-category").addEventListener("change", renderPerfumes);
+      document.getElementById("filter-type").addEventListener("change", renderPerfumes);
+      
+      // Security settings custom question selector
+      document.getElementById("settings-question").addEventListener("change", (e) => {
+        const customInput = document.getElementById("settings-question-custom");
+        if (e.target.value === "custom") {
+          customInput.classList.remove("hidden");
+          customInput.setAttribute("required", "required");
+        } else {
+          customInput.classList.add("hidden");
+          customInput.removeAttribute("required");
+        }
+      });
+    });
+
+    // 1. Fetch Perfumes from REST API
+    async function fetchPerfumes() {
+      try {
+        const response = await fetch("/api/perfumes");
+        allPerfumes = await handleApiResponse(response);
+        
+        renderPerfumes();
+        updateStats();
+      } catch (err) {
+        showToast(err.message || "Failed to load catalog inventory", "error");
+        
+        document.getElementById("inventory-tbody").innerHTML = `
+          <tr>
+            <td colspan="7" class="p-12 text-center text-rose-500 font-semibold bg-rose-950/10">
+              <i data-lucide="alert-circle" class="w-6 h-6 mx-auto mb-2"></i>
+              Failed to connect to backend server or session expired.
+            </td>
+          </tr>
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    // 2. Render List inside Table
+    function renderPerfumes() {
+      const search = document.getElementById("search-input").value.toLowerCase().trim();
+      const categoryFilter = document.getElementById("filter-category").value;
+      const typeFilter = document.getElementById("filter-type").value;
+      
+      const filtered = allPerfumes.filter(p => {
+        // Search Matches
+        const matchesSearch = 
+          p.name.toLowerCase().includes(search) ||
+          p.brand.toLowerCase().includes(search) ||
+          p.description.toLowerCase().includes(search) ||
+          p.topNotes.some(note => note.toLowerCase().includes(search)) ||
+          p.baseNotes.some(note => note.toLowerCase().includes(search));
+          
+        // Category matches
+        const matchesCategory = (categoryFilter === "all") || (p.category === categoryFilter);
+        // Type matches
+        const matchesType = (typeFilter === "all") || (p.type === typeFilter);
+
+        return matchesSearch && matchesCategory && matchesType;
+      });
+
+      const tbody = document.getElementById("inventory-tbody");
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-12 text-center text-neutral-500 font-sans">
+              No matching scents found in stock.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(p => `
+        <tr class="hover:bg-neutral-900/40 transition duration-150 border-b border-neutral-900/40">
+          <td class="p-4 pl-6">
+            <img src="${p.imageUrl}" alt="${p.name}" class="w-11 h-11 object-cover rounded-lg border border-neutral-800 bg-neutral-900" referrerpolicy="no-referrer">
+          </td>
+          <td class="p-4">
+            <div class="font-bold text-white text-sm hover:text-gold-300 transition duration-150">${p.name}</div>
+            <div class="text-neutral-500 font-mono text-3xs uppercase tracking-wider mt-0.5">${p.brand}</div>
+          </td>
+          <td class="p-4">
+            <div class="font-semibold text-neutral-300">${p.category}</div>
+            <div class="text-neutral-500 text-[10px] mt-0.5">${p.type}</div>
+          </td>
+          <td class="p-4 text-neutral-400 font-medium">${p.size}</td>
+          <td class="p-4 font-serif font-bold text-gold-300">${p.priceFormatted}</td>
+          <td class="p-4 hidden xl:table-cell">
+            <div class="flex flex-wrap gap-1 max-w-sm">
+              ${p.topNotes.slice(0, 2).map(n => `<span class="bg-neutral-950 text-neutral-500 border border-neutral-850 px-1.5 py-0.5 rounded-md text-3xs font-medium">${n}</span>`).join('')}
+              ${p.baseNotes.slice(0, 1).map(n => `<span class="bg-burgundy-950/60 text-burgundy-300 border border-burgundy-900/30 px-1.5 py-0.5 rounded-md text-3xs font-medium">${n}</span>`).join('')}
+            </div>
+          </td>
+          <td class="p-4 text-center pr-6">
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="openEditForm('${p.id}')" class="p-2 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 hover:text-white rounded-lg transition cursor-pointer text-neutral-400" title="Edit Scent">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="triggerDelete('${p.id}')" class="p-2 bg-neutral-950 border border-neutral-800 hover:border-burgundy-905 hover:bg-burgundy-950/20 hover:text-burgundy-400 rounded-lg transition cursor-pointer text-neutral-400" title="Delete Scent">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    // 3. Compute Stock Statistics
+    function updateStats() {
+      const totalCount = allPerfumes.length;
+      const oilsCount = allPerfumes.filter(p => p.type === "Perfume Oil").length;
+      const oudsCount = allPerfumes.filter(p => p.type === "Arabian Oud").length;
+      
+      const sumPrice = allPerfumes.reduce((sum, p) => sum + p.price, 0);
+      const avgPrice = totalCount > 0 ? Math.round(sumPrice / totalCount) : 0;
+
+      document.getElementById("stat-total-count").textContent = totalCount;
+      document.getElementById("stat-oils-count").textContent = oilsCount;
+      document.getElementById("stat-ouds-count").textContent = oudsCount;
+      document.getElementById("stat-avg-price").textContent = "₦" + avgPrice.toLocaleString();
+    }
+
+    // 4. Form Drawer Helpers
+    function updateFormImagePreview(url) {
+      const preview = document.getElementById("form-image-preview");
+      if (url && url.startsWith("http")) {
+        preview.src = url;
+      } else {
+        preview.src = "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=150";
+      }
+    }
+
+    // 5. Drawer Form Actions
+    function openAddForm() {
+      document.getElementById("form-perfume-id").value = "";
+      document.getElementById("scent-form").reset();
+      
+      document.getElementById("drawer-title").textContent = "Add New Scent";
+      document.getElementById("drawer-subtitle").textContent = "Insert item into live stock database";
+      
+      updateFormImagePreview("");
+      document.getElementById("form-drawer").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function openEditForm(id) {
+      const p = allPerfumes.find(item => item.id === id);
+      if (!p) return;
+
+      document.getElementById("form-perfume-id").value = p.id;
+      document.getElementById("form-name").value = p.name;
+      document.getElementById("form-brand").value = p.brand;
+      document.getElementById("form-category").value = p.category;
+      document.getElementById("form-type").value = p.type;
+      document.getElementById("form-size").value = p.size;
+      document.getElementById("form-price").value = p.price;
+      
+      document.getElementById("form-notes-top").value = p.topNotes.join(", ");
+      document.getElementById("form-notes-middle").value = (p.middleNotes || []).join(", ");
+      document.getElementById("form-notes-base").value = p.baseNotes.join(", ");
+      document.getElementById("form-description").value = p.description;
+      document.getElementById("form-vibes").value = (p.vibes || []).join(", ");
+      document.getElementById("form-image").value = p.imageUrl;
+      
+      document.getElementById("drawer-title").textContent = "Edit Scent Profile";
+      document.getElementById("drawer-subtitle").textContent = `Updating item ${p.id}`;
+      
+      updateFormImagePreview(p.imageUrl);
+      document.getElementById("form-drawer").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function closeFormDrawer() {
+      document.getElementById("form-drawer").classList.add("hidden");
+    }
+
+    // 6. Submit Form (Save Scent)
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+      
+      const id = document.getElementById("form-perfume-id").value;
+      const name = document.getElementById("form-name").value.trim();
+      const brand = document.getElementById("form-brand").value.trim();
+      const category = document.getElementById("form-category").value;
+      const type = document.getElementById("form-type").value;
+      const size = document.getElementById("form-size").value.trim();
+      const price = parseFloat(document.getElementById("form-price").value);
+      
+      const topNotes = document.getElementById("form-notes-top").value.split(",").map(n => n.trim()).filter(n => n);
+      const middleNotes = document.getElementById("form-notes-middle").value.split(",").map(n => n.trim()).filter(n => n);
+      const baseNotes = document.getElementById("form-notes-base").value.split(",").map(n => n.trim()).filter(n => n);
+      const description = document.getElementById("form-description").value.trim();
+      const vibes = document.getElementById("form-vibes").value.split(",").map(n => n.trim()).filter(n => n);
+      const imageUrl = document.getElementById("form-image").value.trim();
+
+      const payload = {
+        name, brand, category, type, size, price,
+        topNotes, middleNotes, baseNotes, description, vibes, imageUrl
+      };
+
+      try {
+        let response;
+        if (id) {
+          response = await fetch(`/api/perfumes/${id}`, {
+            method: "PUT",
+            headers: getAuthHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify(payload)
+          });
+        } else {
+          response = await fetch("/api/perfumes", {
+            method: "POST",
+            headers: getAuthHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify(payload)
+          });
+        }
+
+        const result = await handleApiResponse(response);
+        showToast(id ? `${name} successfully updated!` : `${name} added to catalog!`);
+        closeFormDrawer();
+        fetchPerfumes();
+      } catch (err) {
+        showToast(err.message || "Failed to save perfume details", "error");
+      }
+    }
+
+    // 7. Delete Functions
+    function triggerDelete(id) {
+      activeDeletingId = id;
+      document.getElementById("delete-modal").classList.remove("hidden");
+    }
+    
+    function closeDeleteModal() {
+      document.getElementById("delete-modal").classList.add("hidden");
+      activeDeletingId = null;
+    }
+
+    async function executeDelete() {
+      if (!activeDeletingId) return;
+      
+      try {
+        const response = await fetch(`/api/perfumes/${activeDeletingId}`, {
+          method: "DELETE",
+          headers: getAuthHeaders()
+        });
+        await handleApiResponse(response);
+        
+        showToast("Scent removed from catalog.");
+        closeDeleteModal();
+        fetchPerfumes();
+      } catch (err) {
+        showToast(err.message || "Failed to delete perfume", "error");
+      }
+    }
+
+    // 8. System Reset Database Functions
+    function confirmResetCatalog() {
+      document.getElementById("reset-modal").classList.remove("hidden");
+    }
+    
+    // System reset DB
+    function closeResetModal() {
+      document.getElementById("reset-modal").classList.add("hidden");
+    }
+
+    async function executeResetCatalog() {
+      try {
+        const response = await fetch("/api/perfumes/reset", {
+          method: "POST",
+          headers: getAuthHeaders()
+        });
+        await handleApiResponse(response);
+        
+        showToast("Database restored to defaults!");
+        closeResetModal();
+        fetchPerfumes();
+      } catch (err) {
+        showToast(err.message || "Failed to reset database", "error");
+      }
+    }
+
+    // 9. Toast Helper
+    function showToast(message, type = "success") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      
+      const isSuccess = type === "success";
+      toast.className = `p-4 rounded-2xl flex items-center gap-3 border shadow-2xl pointer-events-auto fade-in transition duration-300 ${
+        isSuccess 
+          ? "bg-neutral-900 border-neutral-800 text-white" 
+          : "bg-burgundy-950 border-burgundy-900 text-burgundy-300"
+      }`;
+
+      const icon = isSuccess ? "check-circle" : "alert-circle";
+      const iconClass = isSuccess ? "text-gold-400" : "text-burgundy-500";
+      
+      toast.innerHTML = `
+        <i data-lucide="${icon}" class="w-5 h-5 shrink-0 ${iconClass}"></i>
+        <span class="text-xs font-semibold">${message}</span>
+      `;
+      
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.classList.add("opacity-0");
+        setTimeout(() => toast.remove(), 3500);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>

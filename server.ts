@@ -30,8 +30,15 @@ function requireAdminAuth(req: express.Request, res: express.Response, next: exp
 }
 
 // Supabase Database Helpers
+function getSupabase() {
+  if (!supabase) {
+    throw new Error("Supabase is not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY in your environment variables (.env.local).");
+  }
+  return supabase;
+}
+
 async function readAdminConfig() {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("admin_config")
     .select("*")
     .eq("id", "single_config")
@@ -50,7 +57,7 @@ async function readAdminConfig() {
 }
 
 async function writeAdminConfig(config: any) {
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from("admin_config")
     .upsert({
       id: "single_config",
@@ -67,7 +74,7 @@ async function writeAdminConfig(config: any) {
 }
 
 async function readPerfumes(): Promise<any[]> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("perfumes")
     .select("*");
 
@@ -79,7 +86,7 @@ async function readPerfumes(): Promise<any[]> {
 }
 
 async function writePerfumes(perfumes: any[]) {
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from("perfumes")
     .upsert(perfumes);
 
@@ -282,6 +289,44 @@ app.delete("/api/perfumes/:id", requireAdminAuth, async (req, res) => {
     res.json({ message: "Perfume deleted successfully", deleted: deleted[0] });
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Failed to delete perfume" });
+  }
+});
+
+app.post("/api/perfumes/upload", requireAdminAuth, async (req, res) => {
+  try {
+    const { filename, base64Data, mimeType } = req.body;
+    if (!filename || !base64Data || !mimeType) {
+      return res.status(400).json({ error: "Missing required upload parameters (filename, base64Data, mimeType)" });
+    }
+
+    // Convert base64 back to binary Buffer
+    const buffer = Buffer.from(base64Data, "base64");
+    
+    // Generate unique name
+    const cleanFilename = filename.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+    const uniqueFilename = `${Date.now()}_${cleanFilename}`;
+
+    // Upload to Supabase Storage Bucket 'scent-images'
+    const { data, error } = await getSupabase().storage
+      .from("scent-images")
+      .upload(uniqueFilename, buffer, {
+        contentType: mimeType,
+        upsert: true
+      });
+
+    if (error) {
+      console.error("Supabase storage upload error:", error);
+      return res.status(500).json({ error: error.message || "Failed to upload image to Supabase Storage. Make sure bucket 'scent-images' exists and is public." });
+    }
+
+    // Retrieve Public URL
+    const { data: publicUrlData } = getSupabase().storage
+      .from("scent-images")
+      .getPublicUrl(uniqueFilename);
+
+    res.json({ imageUrl: publicUrlData.publicUrl });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "An error occurred during file upload" });
   }
 });
 

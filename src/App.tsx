@@ -145,13 +145,13 @@ export default function App() {
                 key={link.id}
                 id={`nav-link-${link.id}`}
                 onClick={() => scrollAndSetTab(link.id as Tab)}
-                className={`py-2 transition-all relative cursor-pointer ${
+                className={`py-2 transition-all relative cursor-pointer select-none ${
                   activeTab === link.id 
                     ? "text-burgundy-800 font-bold" 
                     : "hover:text-burgundy-800"
                 }`}
               >
-                <span>{link.label}</span>
+                <span className="cursor-pointer">{link.label}</span>
                 {activeTab === link.id && (
                   <motion.div 
                     layoutId="activeTabUnderline" 

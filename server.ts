@@ -1,7 +1,16 @@
-import "dotenv/config";
-import express from "express";
+import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+
+// Load environment variables (.env.local has priority locally)
+const envLocalPath = path.join(process.cwd(), ".env.local");
+if (fs.existsSync(envLocalPath)) {
+  dotenv.config({ path: envLocalPath });
+} else {
+  dotenv.config();
+}
+
+import express from "express";
 import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";

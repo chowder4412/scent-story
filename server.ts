@@ -1,21 +1,13 @@
-import dotenv from "dotenv";
+// dotenv/config auto-loads the .env file before any other module code runs.
+import "dotenv/config";
+import express from "express";
 import path from "path";
 import fs from "fs";
-
-// Load environment variables (.env.local has priority locally)
-const envLocalPath = path.join(process.cwd(), ".env.local");
-if (fs.existsSync(envLocalPath)) {
-  dotenv.config({ path: envLocalPath });
-} else {
-  dotenv.config();
-}
-
-import express from "express";
 import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
-import { PERFUME_INVENTORY } from "./src/perfumesData.js"; // In ESM/TS, node can resolve this
-import { supabase } from "./src/supabaseClient.js";
+import { PERFUME_INVENTORY } from "./src/perfumesData.js";
+import { createClient } from "@supabase/supabase-js";
 
 const app = express();
 const PORT = 3000;
@@ -28,22 +20,27 @@ const ADMIN_SESSION_TOKEN = crypto.randomBytes(32).toString("hex");
 
 function requireAdminAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Unauthorized: Missing authentication token" });
-  }
-  const token = authHeader.substring(7);
+  const token = authHeader?.replace("Bearer ", "").trim();
   if (token !== ADMIN_SESSION_TOKEN) {
     return res.status(401).json({ error: "Unauthorized: Invalid authentication token" });
   }
   next();
 }
 
+// Lazy Supabase client — created on first request, after env vars are loaded.
+let _supabaseInstance: ReturnType<typeof createClient> | null = null;
+
 // Supabase Database Helpers
 function getSupabase() {
-  if (!supabase) {
-    throw new Error("Supabase is not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY in your environment variables (.env.local).");
+  if (!_supabaseInstance) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_ANON_KEY;
+    if (!url || !key) {
+      throw new Error("Supabase is not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY in your environment variables (.env.local).");
+    }
+    _supabaseInstance = createClient(url, key);
   }
-  return supabase;
+  return _supabaseInstance;
 }
 
 async function readAdminConfig() {

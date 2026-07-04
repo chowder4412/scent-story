@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X, Trash2, Plus, Minus, PhoneCall } from "lucide-react";
 import { Perfume } from "../perfumesData.js";
 import { motion, AnimatePresence } from "motion/react";
-import whatsappLogo from "../assets/images/whatsapp_logo.jpg";
+import whatsappLogo from "../assets/images/whatsapp_logo.png";
 
 export interface CartItem {
   perfume: Perfume;

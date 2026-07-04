@@ -12,7 +12,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 
 import { Perfume } from "./perfumesData.js";
-import whatsappLogo from "./assets/images/whatsapp_logo.jpg";
+import whatsappLogo from "./assets/images/whatsapp_logo.png";
 import LandingHero from "./components/LandingHero.js";
 import PerfumeCatalog from "./components/PerfumeCatalog.js";
 import CartDrawer, { CartItem } from "./components/CartDrawer.js";

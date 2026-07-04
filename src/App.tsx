@@ -20,9 +20,34 @@ import CartDrawer, { CartItem } from "./components/CartDrawer.js";
 type Tab = "home" | "catalog" | "contact";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("home");
+  const getInitialTab = (): Tab => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash === "catalog" || hash === "contact" || hash === "home") {
+      return hash as Tab;
+    }
+    return "home";
+  };
+
+  const [activeTab, setActiveTab] = useState<Tab>(getInitialTab);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+
+  // Synchronise state with URL hash change (e.g. back/forward browser buttons)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash === "catalog" || hash === "contact" || hash === "home") {
+        setActiveTab(hash as Tab);
+      }
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  // Update hash when active tab changes
+  useEffect(() => {
+    window.location.hash = activeTab;
+  }, [activeTab]);
 
   // Load cart on initial mount
   useEffect(() => {

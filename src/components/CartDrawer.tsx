@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { X, Trash2, Plus, Minus, MessageSquare, PhoneCall } from "lucide-react";
+import { X, Trash2, Plus, Minus, PhoneCall } from "lucide-react";
 import { Perfume } from "../perfumesData.js";
 import { motion, AnimatePresence } from "motion/react";
+import whatsappLogo from "../assets/images/whatsapp_logo.jpg";
 
 export interface CartItem {
   perfume: Perfume;
@@ -262,7 +263,7 @@ export default function CartDrawer({
                     onClick={handleWhatsAppCheckout}
                     className="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-medium py-3 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm font-sans"
                   >
-                    <MessageSquare className="w-4 h-4 fill-white" />
+                    <img src={whatsappLogo} alt="WhatsApp" className="w-4 h-4 object-contain rounded-xs" />
                     <span>Order via WhatsApp</span>
                   </button>
 

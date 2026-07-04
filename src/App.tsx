@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { 
   ShoppingBag, 
-  MessageSquare, 
   Phone, 
   MapPin, 
   Clock, 
@@ -13,6 +12,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 
 import { Perfume } from "./perfumesData.js";
+import whatsappLogo from "./assets/images/whatsapp_logo.jpg";
 import LandingHero from "./components/LandingHero.js";
 import PerfumeCatalog from "./components/PerfumeCatalog.js";
 import CartDrawer, { CartItem } from "./components/CartDrawer.js";
@@ -259,8 +259,8 @@ export default function App() {
                         rel="noreferrer"
                         className="flex items-center gap-4 bg-emerald-600 hover:bg-emerald-500 p-4 rounded-2xl transition shadow-xs group"
                       >
-                        <div className="bg-white/10 p-2.5 rounded-xl text-white">
-                          <MessageSquare className="w-5 h-5 fill-white" />
+                        <div className="bg-white/10 p-2.5 rounded-xl text-white flex items-center justify-center">
+                          <img src={whatsappLogo} alt="WhatsApp" className="w-5 h-5 object-contain rounded-xs" />
                         </div>
                         <div>
                           <span className="text-3xs font-mono uppercase tracking-wider text-emerald-100 block">WhatsApp Us</span>

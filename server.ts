@@ -12,8 +12,9 @@ import { createClient } from "@supabase/supabase-js";
 const app = express();
 const PORT = 3000;
 
-// Body parser
-app.use(express.json());
+// Body parser - configured with a higher limit for base64 file uploads
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // Admin Auth Configuration
 const ADMIN_SESSION_TOKEN = crypto.randomBytes(32).toString("hex");

@@ -278,7 +278,7 @@ export default function App() {
                         <div>
                           <span className="font-bold text-neutral-800 block">Headquarters</span>
                           <span className="text-neutral-400 mt-0.5 block leading-relaxed">
-                            Debs Scent Story Boutique, Boutique Plaza, Ikeja, Lagos State, Nigeria.
+                            Debs Scent Story Boutique, Abuja, Federal Capital Territory, Nigeria.
                           </span>
                         </div>
                       </div>

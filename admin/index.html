@@ -537,6 +537,50 @@
 
       </section>
 
+      <!-- 2.5 Bulk Price Adjuster Tools -->
+      <section class="bg-neutral-900 border border-neutral-900 p-6 rounded-3xl shadow-md space-y-4">
+        <div class="space-y-1">
+          <h4 class="font-serif font-bold text-neutral-200 text-sm">Bulk Price Adjustments</h4>
+          <p class="text-neutral-500 text-3xs">Instantly increase or decrease pricing for a subset of fragrances (e.g. for promotions or seasonal sales).</p>
+        </div>
+        
+        <div class="flex flex-wrap items-end gap-4 bg-neutral-950/30 p-4 rounded-2xl border border-neutral-800/40">
+          <!-- Action Selector -->
+          <div class="space-y-1.5 flex-1 min-w-[150px]">
+            <label for="bulk-adjust-type" class="block font-mono text-[9px] font-bold text-neutral-500 uppercase tracking-wider">Adjustment Action</label>
+            <select id="bulk-adjust-type" class="w-full px-3 py-2 bg-neutral-950 border border-neutral-850 rounded-xl focus:outline-none focus:border-burgundy-900 text-neutral-300 font-semibold text-2xs cursor-pointer">
+              <option value="increase">Increase Prices (+)</option>
+              <option value="decrease">Decrease Prices (-)</option>
+            </select>
+          </div>
+
+          <!-- Percentage Input -->
+          <div class="space-y-1.5 w-24">
+            <label for="bulk-adjust-percentage" class="block font-mono text-[9px] font-bold text-neutral-500 uppercase tracking-wider">Percent (%)</label>
+            <input type="number" id="bulk-adjust-percentage" min="1" max="100" value="10" class="w-full px-3 py-2 bg-neutral-950 border border-neutral-850 rounded-xl focus:outline-none focus:border-burgundy-900 text-neutral-200 text-2xs" />
+          </div>
+
+          <!-- Scope Selector -->
+          <div class="space-y-1.5 flex-1 min-w-[150px]">
+            <label for="bulk-adjust-scope" class="block font-mono text-[9px] font-bold text-neutral-500 uppercase tracking-wider">Apply To (Scope)</label>
+            <select id="bulk-adjust-scope" class="w-full px-3 py-2 bg-neutral-950 border border-neutral-850 rounded-xl focus:outline-none focus:border-burgundy-900 text-neutral-300 font-semibold text-2xs cursor-pointer">
+              <option value="all">All Fragrances</option>
+              <option value="oils">Perfume Oils Only</option>
+              <option value="ouds">Arabian Ouds Only</option>
+            </select>
+          </div>
+
+          <!-- Apply Button -->
+          <button
+            onclick="applyBulkPriceAdjustment()"
+            class="flex items-center justify-center gap-2 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-burgundy-950 font-bold px-5 py-2.5 rounded-xl transition text-2xs cursor-pointer hover:scale-[1.01] active:scale-[0.99] h-[38px] shrink-0"
+          >
+            <i data-lucide="percent" class="w-3.5 h-3.5"></i>
+            <span>Apply Adjustment</span>
+          </button>
+        </div>
+      </section>
+
       <!-- 3. Catalog Utility Tools -->
       <section class="flex justify-between items-center bg-neutral-900 border border-neutral-900 p-6 rounded-3xl shadow-md">
         <div class="space-y-1">
@@ -775,17 +819,57 @@
                   </div>
                   
                   <!-- Preview -->
-                  <div class="flex items-center gap-4 bg-neutral-950/40 border border-neutral-850 p-3 rounded-2xl relative overflow-hidden">
+                  <div class="relative overflow-hidden bg-neutral-950/40 border border-neutral-850 p-4 rounded-2xl">
+                    <span class="block text-4xs text-neutral-500 font-mono font-bold uppercase tracking-wider mb-2">Live Storefront Card Preview</span>
+                    
                     <!-- Loading overlay for uploads -->
-                    <div id="image-upload-loading" class="absolute inset-0 bg-neutral-950/70 backdrop-blur-xs flex items-center justify-center gap-2 hidden transition-all duration-300">
+                    <div id="image-upload-loading" class="absolute inset-0 bg-neutral-950/70 backdrop-blur-xs flex items-center justify-center gap-2 hidden transition-all duration-300 z-30">
                       <div class="w-4 h-4 border-2 border-gold-400 border-t-transparent rounded-full animate-spin"></div>
                       <span class="text-3xs font-semibold text-gold-400 font-mono">Uploading to Cloud...</span>
                     </div>
 
-                    <img id="form-image-preview" src="https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=150" alt="Preview Scent" class="w-14 h-14 object-cover rounded-xl bg-neutral-850">
-                    <div class="text-[10px] text-neutral-500 leading-normal">
-                      <span class="font-bold text-neutral-400 block mb-0.5">Catalog Card Preview</span>
-                      Choose a file or paste a web URL. Scent images look best in square aspect ratio.
+                    <!-- Storefront Mockup Card -->
+                    <div class="relative bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl max-w-sm mx-auto transition-all duration-300">
+                      <!-- Scent Image -->
+                      <div class="aspect-square relative w-full overflow-hidden bg-neutral-950">
+                        <img id="form-image-preview" src="https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=350" alt="Preview Scent" class="w-full h-full object-cover transition duration-300">
+                        <!-- Top left Badges -->
+                        <div class="absolute top-3 left-3 flex flex-col gap-1">
+                          <span id="preview-badge-category" class="bg-gold-500/90 text-neutral-950 font-bold px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider">Unisex</span>
+                          <span id="preview-badge-type" class="bg-burgundy-950/90 text-burgundy-300 border border-burgundy-900/40 px-2 py-0.5 rounded-full text-[9px]">Eau de Parfum</span>
+                        </div>
+                        <!-- Size Badge (Bottom right) -->
+                        <div class="absolute bottom-3 right-3 bg-neutral-950/80 backdrop-blur-xs text-neutral-300 text-[10px] font-medium px-2 py-0.5 rounded-md font-mono" id="preview-badge-size">100ml</div>
+                      </div>
+                      
+                      <!-- Scent details -->
+                      <div class="p-4 space-y-3">
+                        <div class="flex justify-between items-start gap-2">
+                          <div>
+                            <h4 id="preview-title" class="font-serif font-bold text-white text-base leading-tight">Scent Name</h4>
+                            <p id="preview-brand" class="text-neutral-500 font-mono text-[10px] uppercase tracking-wider mt-0.5">BRAND NAME</p>
+                          </div>
+                          <!-- Price Tag -->
+                          <div class="text-right shrink-0">
+                            <span id="preview-price" class="text-gold-300 font-serif font-bold text-base block">₦0</span>
+                          </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <p id="preview-description" class="text-neutral-400 text-[10.5px] leading-relaxed line-clamp-2">This is a description preview detailing notes, longevity, sillage, and customer feedback...</p>
+                        
+                        <!-- Notes list -->
+                        <div class="space-y-1.5 pt-2.5 border-t border-neutral-800/60">
+                          <div class="flex flex-wrap gap-1" id="preview-notes-container">
+                            <span class="bg-neutral-950 text-neutral-400 border border-neutral-850 px-2 py-0.5 rounded-md text-[9px]">Top: Bergamot</span>
+                            <span class="bg-burgundy-950/40 text-burgundy-300 border border-burgundy-900/30 px-2 py-0.5 rounded-md text-[9px]">Base: Vanilla</span>
+                          </div>
+                          <!-- Vibes -->
+                          <div class="flex flex-wrap gap-1" id="preview-vibes-container">
+                            <span class="text-gold-400 text-[9px] bg-gold-950/20 px-2 py-0.5 rounded-full font-medium">✨ Bold</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1333,6 +1417,68 @@
       reader.readAsDataURL(file);
     }
 
+    function updateLivePreview() {
+      const name = document.getElementById("form-name").value.trim() || "Scent Name";
+      const brand = document.getElementById("form-brand").value.trim() || "Brand Name";
+      const category = document.getElementById("form-category").value;
+      const type = document.getElementById("form-type").value;
+      const size = document.getElementById("form-size").value.trim() || "100ml";
+      const priceVal = parseFloat(document.getElementById("form-price").value) || 0;
+      const description = document.getElementById("form-description").value.trim() || "This is a description preview detailing notes, longevity, sillage, and customer feedback...";
+      const imageUrl = document.getElementById("form-image").value;
+
+      const topNotes = document.getElementById("form-notes-top").value.split(",").map(n => n.trim()).filter(Boolean);
+      const midNotes = document.getElementById("form-notes-middle").value.split(",").map(n => n.trim()).filter(Boolean);
+      const baseNotes = document.getElementById("form-notes-base").value.split(",").map(n => n.trim()).filter(Boolean);
+      const vibes = document.getElementById("form-vibes").value.split(",").map(n => n.trim()).filter(Boolean);
+
+      // Set Text
+      document.getElementById("preview-title").textContent = name;
+      document.getElementById("preview-brand").textContent = brand.toUpperCase();
+      document.getElementById("preview-badge-category").textContent = category;
+      document.getElementById("preview-badge-type").textContent = type;
+      document.getElementById("preview-badge-size").textContent = size;
+      document.getElementById("preview-price").textContent = "₦" + priceVal.toLocaleString();
+      document.getElementById("preview-description").textContent = description;
+
+      // Set Image
+      const previewImg = document.getElementById("form-image-preview");
+      if (imageUrl && imageUrl.startsWith("http")) {
+        previewImg.src = imageUrl;
+      } else {
+        previewImg.src = "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=350";
+      }
+
+      // Render Notes tags
+      const notesContainer = document.getElementById("preview-notes-container");
+      notesContainer.innerHTML = "";
+      if (topNotes.length > 0) {
+        notesContainer.innerHTML += `<span class="bg-neutral-950 text-neutral-400 border border-neutral-850 px-2 py-0.5 rounded-md text-[9px]">Top: ${topNotes.slice(0, 2).join(", ")}</span>`;
+      }
+      if (midNotes.length > 0) {
+        notesContainer.innerHTML += `<span class="bg-neutral-950 text-neutral-400 border border-neutral-850 px-2 py-0.5 rounded-md text-[9px]">Heart: ${midNotes.slice(0, 2).join(", ")}</span>`;
+      }
+      if (baseNotes.length > 0) {
+        notesContainer.innerHTML += `<span class="bg-burgundy-950/40 text-burgundy-300 border border-burgundy-900/30 px-2 py-0.5 rounded-md text-[9px]">Base: ${baseNotes.slice(0, 2).join(", ")}</span>`;
+      }
+
+      // Render Vibes tags
+      const vibesContainer = document.getElementById("preview-vibes-container");
+      vibesContainer.innerHTML = "";
+      vibes.slice(0, 3).forEach(v => {
+        vibesContainer.innerHTML += `<span class="text-gold-400 text-[9px] bg-gold-950/20 px-2 py-0.5 rounded-full font-medium">✨ ${v}</span>`;
+      });
+    }
+
+    // Attach real-time input event listeners to the scent form
+    document.addEventListener("DOMContentLoaded", () => {
+      const scentForm = document.getElementById("scent-form");
+      if (scentForm) {
+        scentForm.addEventListener("input", updateLivePreview);
+        scentForm.addEventListener("change", updateLivePreview);
+      }
+    });
+
     // 5. Drawer Form Actions
     function openAddForm() {
       document.getElementById("form-perfume-id").value = "";
@@ -1344,6 +1490,7 @@
       document.getElementById("drawer-subtitle").textContent = "Insert item into live stock database";
       
       updateFormImagePreview("");
+      updateLivePreview();
       document.getElementById("form-drawer").classList.remove("hidden");
       lucide.createIcons();
     }
@@ -1374,6 +1521,7 @@
       document.getElementById("drawer-subtitle").textContent = `Updating item ${p.id}`;
       
       updateFormImagePreview(p.imageUrl);
+      updateLivePreview();
       document.getElementById("form-drawer").classList.remove("hidden");
       lucide.createIcons();
     }
@@ -1485,6 +1633,40 @@
         fetchPerfumes();
       } catch (err) {
         showToast(err.message || "Failed to reset database", "error");
+      }
+    }
+
+    async function applyBulkPriceAdjustment() {
+      const adjustmentType = document.getElementById("bulk-adjust-type").value;
+      const percentage = parseFloat(document.getElementById("bulk-adjust-percentage").value);
+      const scope = document.getElementById("bulk-adjust-scope").value;
+
+      if (isNaN(percentage) || percentage <= 0) {
+        showToast("Please enter a valid positive percentage value.", "error");
+        return;
+      }
+
+      const directionText = adjustmentType === "increase" ? "increase" : "decrease";
+      const scopeText = scope === "all" ? "all fragrances" : (scope === "oils" ? "all Perfume Oils" : "all Arabian Ouds");
+      
+      const confirmed = confirm(`Are you sure you want to ${directionText} the prices of ${scopeText} by ${percentage}%?\n\nThis will permanently update the database catalog.`);
+      if (!confirmed) return;
+
+      try {
+        const response = await fetch("/api/perfumes/bulk-adjust", {
+          method: "POST",
+          headers: getAuthHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ adjustmentType, percentage, scope })
+        });
+
+        const result = await handleApiResponse(response);
+        showToast(result.message || "Bulk adjustment successfully applied!");
+        
+        // Refresh catalog table
+        await fetchPerfumes();
+      } catch (err) {
+        console.error("Bulk adjust error:", err);
+        showToast(err.message || "Failed to adjust prices.", "error");
       }
     }
 

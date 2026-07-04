@@ -292,6 +292,64 @@ app.delete("/api/perfumes/:id", requireAdminAuth, async (req, res) => {
   }
 });
 
+app.post("/api/perfumes/bulk-adjust", requireAdminAuth, async (req, res) => {
+  try {
+    const { adjustmentType, percentage, scope } = req.body;
+    if (!adjustmentType || percentage === undefined || !scope) {
+      return res.status(400).json({ error: "Missing required parameters (adjustmentType, percentage, scope)" });
+    }
+
+    const pct = parseFloat(percentage);
+    if (isNaN(pct) || pct <= 0) {
+      return res.status(400).json({ error: "Percentage must be a valid positive number" });
+    }
+
+    const perfumes = await readPerfumes();
+    let updatedCount = 0;
+
+    const updatedPerfumes = perfumes.map(p => {
+      // Check if item falls within scope
+      let matchesScope = false;
+      if (scope === "all") {
+        matchesScope = true;
+      } else if (scope === "oils" && p.type === "Perfume Oil") {
+        matchesScope = true;
+      } else if (scope === "ouds" && p.type === "Arabian Oud") {
+        matchesScope = true;
+      }
+
+      if (matchesScope) {
+        let newPrice = p.price;
+        if (adjustmentType === "increase") {
+          newPrice = Math.round(p.price * (1 + pct / 100));
+        } else if (adjustmentType === "decrease") {
+          newPrice = Math.round(p.price * (1 - pct / 100));
+          if (newPrice < 0) newPrice = 0;
+        }
+        
+        updatedCount++;
+        return {
+          ...p,
+          price: newPrice,
+          priceFormatted: "₦" + newPrice.toLocaleString()
+        };
+      }
+      return p;
+    });
+
+    if (updatedCount > 0) {
+      await writePerfumes(updatedPerfumes);
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully adjusted pricing for ${updatedCount} items in the database by ${pct}%.`
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "An error occurred during bulk price adjustment" });
+  }
+});
+
 app.post("/api/perfumes/upload", requireAdminAuth, async (req, res) => {
   try {
     const { filename, base64Data, mimeType } = req.body;

@@ -72,7 +72,8 @@ export default function LandingHero({ onNavigateToCatalog }: LandingHeroProps) {
               <button
                 id="hero-browse-btn"
                 onClick={onNavigateToCatalog}
-                className="bg-burgundy-800 hover:bg-burgundy-700 text-white font-semibold py-3.5 px-8 rounded-xl shadow-lg transition duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm flex items-center gap-2 cursor-pointer"
+                style={{ cursor: "pointer", userSelect: "none" }}
+                className="bg-burgundy-800 hover:bg-burgundy-700 text-white font-semibold py-3.5 px-8 rounded-xl shadow-lg transition duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm flex items-center gap-2 select-none"
               >
                 <span>Browse Perfume Plug</span>
                 <ArrowRight className="w-4 h-4" />

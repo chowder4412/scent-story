@@ -145,13 +145,14 @@ export default function App() {
                 key={link.id}
                 id={`nav-link-${link.id}`}
                 onClick={() => scrollAndSetTab(link.id as Tab)}
-                className={`py-2 transition-all relative cursor-pointer select-none ${
+                style={{ cursor: "pointer", userSelect: "none" }}
+                className={`py-2 transition-all relative select-none ${
                   activeTab === link.id 
                     ? "text-burgundy-800 font-bold" 
                     : "hover:text-burgundy-800"
                 }`}
               >
-                <span className="cursor-pointer">{link.label}</span>
+                <span style={{ cursor: "pointer", userSelect: "none" }}>{link.label}</span>
                 {activeTab === link.id && (
                   <motion.div 
                     layoutId="activeTabUnderline" 
@@ -376,9 +377,9 @@ export default function App() {
               Boutique Map
             </h4>
             <div className="flex flex-col gap-2 font-semibold">
-              <button onClick={() => scrollAndSetTab("home")} className="hover:text-gold-500 transition">Home</button>
-              <button onClick={() => scrollAndSetTab("catalog")} className="hover:text-gold-500 transition">Scent Collections</button>
-              <button onClick={() => scrollAndSetTab("contact")} className="hover:text-gold-500 transition">Contact Scent Plug</button>
+              <button onClick={() => scrollAndSetTab("home")} style={{ cursor: "pointer", userSelect: "none" }} className="hover:text-gold-500 transition select-none">Home</button>
+              <button onClick={() => scrollAndSetTab("catalog")} style={{ cursor: "pointer", userSelect: "none" }} className="hover:text-gold-500 transition select-none">Scent Collections</button>
+              <button onClick={() => scrollAndSetTab("contact")} style={{ cursor: "pointer", userSelect: "none" }} className="hover:text-gold-500 transition select-none">Contact Scent Plug</button>
             </div>
           </div>
 

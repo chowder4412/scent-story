@@ -180,7 +180,8 @@ export default function PerfumeCatalog({ onAddPerfumeToCart, cartItemIds }: Perf
             key={cat.id}
             id={`category-tab-${cat.id}`}
             onClick={() => setActiveCategory(cat.id as CategoryFilter)}
-            className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-medium border transition duration-250 cursor-pointer ${
+            style={{ cursor: "pointer", userSelect: "none" }}
+            className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-medium border transition duration-250 select-none ${
               activeCategory === cat.id
                 ? "bg-burgundy-800 border-burgundy-800 text-white shadow-sm font-semibold"
                 : "bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"

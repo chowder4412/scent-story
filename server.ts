@@ -80,7 +80,14 @@ async function writeAdminConfig(config: any) {
   }
 }
 
+// In-memory cache for perfumes catalog to avoid redundant Supabase reads
+let cachedPerfumes: any[] | null = null;
+
 async function readPerfumes(): Promise<any[]> {
+  if (cachedPerfumes !== null) {
+    return cachedPerfumes;
+  }
+
   const { data, error } = await getSupabase()
     .from("perfumes")
     .select("*");
@@ -89,10 +96,15 @@ async function readPerfumes(): Promise<any[]> {
     console.error("Error reading perfumes from Supabase:", error);
     return PERFUME_INVENTORY;
   }
-  return data || [];
+  
+  cachedPerfumes = data || [];
+  return cachedPerfumes;
 }
 
 async function writePerfumes(perfumes: any[]) {
+  // Invalidate cache immediately on write
+  cachedPerfumes = null;
+
   const { error } = await getSupabase()
     .from("perfumes")
     .upsert(perfumes);

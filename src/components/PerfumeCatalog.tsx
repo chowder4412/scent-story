@@ -240,12 +240,16 @@ export default function PerfumeCatalog({ onAddPerfumeToCart, cartItemIds }: Perf
           </button>
         </div>
       ) : (
-        <motion.div
-          id="perfumes-grid"
-          layout
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-        >
-          <AnimatePresence>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeCategory + "_" + activeSort + "_" + (searchTerm || "")}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            id="perfumes-grid"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
             {sortedPerfumes.map((perfume) => {
               const isAlreadyInCart = cartItemIds.includes(perfume.id);
               const isAddedFeedback = addedFeedbackIds[perfume.id];
@@ -385,8 +389,8 @@ export default function PerfumeCatalog({ onAddPerfumeToCart, cartItemIds }: Perf
                 </motion.div>
               );
             })}
-          </AnimatePresence>
-        </motion.div>
+          </motion.div>
+        </AnimatePresence>
       )}
 
       {/* Scent Notes / Details Dialog Modal */}

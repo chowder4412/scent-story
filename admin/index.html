@@ -1532,9 +1532,94 @@
       document.getElementById("upload-status-text").textContent = "Choose Local Image";
     }
 
+    function validateForm() {
+      let isValid = true;
+      const errors = [];
+
+      // Clear previous error styles
+      const fields = [
+        "form-name", "form-brand", "form-size", "form-price",
+        "form-notes-top", "form-notes-base", "form-description", "form-image"
+      ];
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove("border-rose-500", "focus:border-rose-500");
+          el.classList.add("border-neutral-800", "focus:border-burgundy-800");
+        }
+      });
+
+      const name = document.getElementById("form-name").value.trim();
+      const brand = document.getElementById("form-brand").value.trim();
+      const size = document.getElementById("form-size").value.trim();
+      const priceVal = parseFloat(document.getElementById("form-price").value);
+      const topNotes = document.getElementById("form-notes-top").value.trim();
+      const baseNotes = document.getElementById("form-notes-base").value.trim();
+      const description = document.getElementById("form-description").value.trim();
+      const imageUrl = document.getElementById("form-image").value.trim();
+
+      const highlightError = (id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove("border-neutral-800", "focus:border-burgundy-800");
+          el.classList.add("border-rose-500", "focus:border-rose-500");
+        }
+      };
+
+      if (name.length < 2) {
+        highlightError("form-name");
+        errors.push("Scent name must be at least 2 characters.");
+        isValid = false;
+      }
+      if (brand.length < 2) {
+        highlightError("form-brand");
+        errors.push("Brand / Maker name must be at least 2 characters.");
+        isValid = false;
+      }
+      if (!size) {
+        highlightError("form-size");
+        errors.push("Volume size is required.");
+        isValid = false;
+      }
+      if (isNaN(priceVal) || priceVal <= 0) {
+        highlightError("form-price");
+        errors.push("Price must be a valid positive number.");
+        isValid = false;
+      }
+      if (!topNotes) {
+        highlightError("form-notes-top");
+        errors.push("At least one Top Note is required.");
+        isValid = false;
+      }
+      if (!baseNotes) {
+        highlightError("form-notes-base");
+        errors.push("At least one Base Note is required.");
+        isValid = false;
+      }
+      if (description.length < 10) {
+        highlightError("form-description");
+        errors.push("Description must be at least 10 characters.");
+        isValid = false;
+      }
+      if (!imageUrl || !imageUrl.startsWith("http")) {
+        highlightError("form-image");
+        errors.push("A valid product image URL (uploaded or pasted) is required.");
+        isValid = false;
+      }
+
+      if (!isValid) {
+        // Show error messages as toasts
+        errors.forEach(msg => showToast(msg, "error"));
+      }
+
+      return isValid;
+    }
+
     // 6. Submit Form (Save Scent)
     async function handleFormSubmit(event) {
       event.preventDefault();
+      
+      if (!validateForm()) return;
       
       const id = document.getElementById("form-perfume-id").value;
       const name = document.getElementById("form-name").value.trim();
